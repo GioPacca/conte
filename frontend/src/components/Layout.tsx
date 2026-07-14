@@ -2,13 +2,15 @@ import type { ReactNode } from 'react';
 import type { Usuario } from '../api/auth';
 
 // Las pantallas disponibles crecen con cada etapa.
+// 'perfil' no tiene pestaña propia: se entra por el botón del encabezado.
 export type Pantalla =
   | 'inicio'
   | 'miembros'
   | 'responsables'
   | 'pagos'
   | 'eventos'
-  | 'configuracion';
+  | 'configuracion'
+  | 'perfil';
 
 const pantallas: { id: Pantalla; titulo: string; soloTesorero?: boolean }[] = [
   { id: 'inicio', titulo: 'Inicio' },
@@ -46,12 +48,18 @@ export function Layout({
             Tesorería — {nombreClub}
           </span>
           <div className="ml-auto flex items-center gap-3 text-sm">
-            <span>
+            {/* El nombre lleva a Mi perfil: cada usuario edita sus datos */}
+            <button
+              type="button"
+              onClick={() => alNavegar('perfil')}
+              title="Mi perfil"
+              className="rounded px-2 py-1 hover:bg-emerald-600"
+            >
               {usuario.nombre} {usuario.apellido}
               <span className="ml-1 text-emerald-200">
                 ({usuario.rol === 'TESORERO' ? 'Tesorero' : 'Ayudante'})
               </span>
-            </span>
+            </button>
             <button
               type="button"
               onClick={alSalir}

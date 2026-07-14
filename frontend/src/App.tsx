@@ -7,6 +7,7 @@ import { Miembros } from './pages/Miembros';
 import { Pagos } from './pages/Pagos';
 import { Eventos } from './pages/Eventos';
 import { Configuracion } from './pages/Configuracion';
+import { Perfil } from './pages/Perfil';
 import { cerrarSesion, obtenerUsuarioActual, type Usuario } from './api/auth';
 import { obtenerConfiguracion, type Configuracion as Config } from './api/configuracion';
 
@@ -91,6 +92,7 @@ export default function App() {
       {pantalla === 'configuracion' && usuario.rol === 'TESORERO' && (
         <Configuracion usuario={usuario} alCambiarConfig={setConfig} />
       )}
+      {pantalla === 'perfil' && <Perfil usuario={usuario} alActualizar={setUsuario} />}
     </Layout>
   );
 }

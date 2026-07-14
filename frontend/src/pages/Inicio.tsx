@@ -38,6 +38,12 @@ export function Inicio({
     return <p className="text-sm text-gray-500">Cargando panel…</p>;
   }
 
+  // Tolerancia a mezcla de versiones: durante un despliegue, el frontend
+  // nuevo puede convivir unos minutos con un backend viejo que todavía no
+  // devuelve estos campos. Mejor mostrar vacío que romper el panel.
+  const eventosActivos = panel.eventosActivos ?? [];
+  const movimientos = panel.movimientos ?? [];
+
   const tarjetas = [
     { titulo: 'Miembros activos', valor: String(panel.miembrosActivos) },
     { titulo: 'Total de miembros', valor: String(panel.totalMiembros) },
@@ -116,7 +122,7 @@ export function Inicio({
       <div className="rounded-lg bg-white p-6 shadow">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-semibold text-gray-800">
-            Eventos activos ({panel.eventosActivos.length})
+            Eventos activos ({eventosActivos.length})
           </h2>
           <button
             type="button"
@@ -126,11 +132,11 @@ export function Inicio({
             Ver todos los eventos →
           </button>
         </div>
-        {panel.eventosActivos.length === 0 ? (
+        {eventosActivos.length === 0 ? (
           <p className="mt-2 text-sm text-gray-500">No hay eventos activos.</p>
         ) : (
           <ul className="mt-3 divide-y divide-gray-100 text-sm">
-            {panel.eventosActivos.map((e) => (
+            {eventosActivos.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center gap-2 py-2">
                 <span className="font-medium text-gray-800">{e.nombre}</span>
                 <span className="text-gray-500">— {formatearFecha(e.fecha)}</span>
@@ -155,7 +161,7 @@ export function Inicio({
             Registrar pago
           </button>
         </div>
-        {panel.movimientos.length === 0 ? (
+        {movimientos.length === 0 ? (
           <p className="mt-2 text-sm text-gray-500">Todavía no hay movimientos registrados.</p>
         ) : (
           <div className="mt-3 overflow-x-auto">
@@ -170,7 +176,7 @@ export function Inicio({
                 </tr>
               </thead>
               <tbody>
-                {panel.movimientos.map((m) => (
+                {movimientos.map((m) => (
                   <tr key={`${m.tipo}-${m.id}`} className="border-b border-gray-100">
                     <td className="py-2 pr-4">
                       <span

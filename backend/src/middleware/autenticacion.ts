@@ -11,6 +11,7 @@ export type UsuarioSesion = {
   id: string;
   nombre: string;
   apellido: string;
+  telefono: string | null;
   email: string;
   rol: 'TESORERO' | 'AYUDANTE';
 };
@@ -39,7 +40,7 @@ export async function requiereSesion(req: Request, res: Response, next: NextFunc
 
   const usuario = await prisma.usuario.findUnique({
     where: { id: usuarioId },
-    select: { id: true, nombre: true, apellido: true, email: true, rol: true, estado: true },
+    select: { id: true, nombre: true, apellido: true, telefono: true, email: true, rol: true, estado: true },
   });
 
   // Usuario eliminado o inactivo: la sesión deja de valer

@@ -84,7 +84,8 @@ crean después desde la aplicación (solo el tesorero puede).
 | GET | `/api/health` | público | Verifica que el servidor esté vivo. Respuesta: `{ "estado": "ok" }`. |
 | POST | `/api/auth/login` | público | Body: `{ email, password }`. Inicia sesión (cookie). Respuesta: usuario sin hash. 401 si las credenciales fallan o el usuario está inactivo. |
 | POST | `/api/auth/logout` | público | Cierra la sesión y borra la cookie. |
-| GET | `/api/auth/yo` | sesión | Usuario de la sesión actual: `{ id, nombre, apellido, email, rol }`. |
+| GET | `/api/auth/yo` | sesión | Usuario de la sesión actual: `{ id, nombre, apellido, telefono, email, rol }`. |
+| PUT | `/api/auth/perfil` | sesión | Cada usuario edita SU información: `{ nombre?, apellido?, telefono?, email?, passwordActual?, passwordNueva? }`. Cambiar la contraseña exige la actual (401 si no coincide). El rol y el estado no se tocan por acá. |
 | GET | `/api/usuarios` | tesorero | Lista todos los usuarios (sin hash), ordenados por apellido. |
 | POST | `/api/usuarios` | tesorero | Body: `{ nombre, apellido, telefono?, email, password, rol? }` — rol `AYUDANTE` (por defecto) o `TESORERO`. 409 si el email ya existe. |
 | PUT | `/api/usuarios/:id` | tesorero | Body: campos a cambiar (`password` y `estado` incluidos). Solo ayudantes: 403 si el destino es tesorero. |
@@ -203,6 +204,11 @@ Errores: siempre `{ "error": "mensaje" }` con el código HTTP correspondiente
   rol. Nadie puede eliminarse a sí mismo — como quien ejecuta es un
   tesorero activo, siempre queda al menos uno. EDITAR tesoreros sigue
   bloqueado.
+- **Cada usuario edita su propia información** (ampliación decidida con
+  el usuario) desde "Mi perfil" (click en el nombre, en la barra
+  superior): nombre, apellido, teléfono, email y contraseña. Cambiar la
+  contraseña exige ingresar la actual (protege una sesión abierta ajena).
+  El rol y el estado quedan fuera: son del tesorero.
 - **"Mes actual" del panel = mes calendario del sistema**, no
   `anio_actual` de la configuración (ese solo aplica a valores por
   defecto de formularios). Los "últimos movimientos" son los 10 más
