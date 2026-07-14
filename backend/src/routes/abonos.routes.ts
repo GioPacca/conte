@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { registrarAbono, editarAbono } from '../controllers/abonos.controller';
-import { requiereSesion, requiereTesorero } from '../middleware/autenticacion';
+import { requiereSesion } from '../middleware/autenticacion';
 
 export const rutasAbonos = Router();
 
 rutasAbonos.use(requiereSesion);
 
 rutasAbonos.post('/', registrarAbono);
-// Modificar abonos es exclusivo del tesorero (sección 3 de la especificación)
-rutasAbonos.put('/:id', requiereTesorero, editarAbono);
+// Modificar abonos: cualquier usuario (ampliación decidida con el usuario;
+// la especificación lo limitaba al tesorero).
+rutasAbonos.put('/:id', editarAbono);

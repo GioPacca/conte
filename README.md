@@ -106,7 +106,7 @@ crean después desde la aplicación (solo el tesorero puede).
 
 | GET | `/api/pagos?miembroId=&mes=&anio=&limite=` | sesión | Lista pagos de cuota de actividad con miembro (y su responsable) y quién lo registró. Orden: más reciente primero. |
 | POST | `/api/pagos` | sesión | Body: `{ miembroId, meses: number[], anio, monto, fechaPago, observaciones? }`. Crea UN pago por mes, todos con el mismo monto, en una transacción (todo o nada). Devuelve los pagos creados. 409 con detalle de períodos si alguno ya existe. |
-| PUT | `/api/pagos/:id` | tesorero | Body: `{ monto?, fechaPago?, mes?, anio?, observaciones? }`. 409 si el nuevo período ya tiene pago. |
+| PUT | `/api/pagos/:id` | sesión | Body: `{ monto?, fechaPago?, mes?, anio?, observaciones? }`. 409 si el nuevo período ya tiene pago. |
 
 | GET | `/api/eventos` | sesión | Lista de eventos con `cantidadParticipantes`, ordenados por fecha descendente. |
 | GET | `/api/eventos/:id` | sesión | Detalle: datos, participantes (con miembro, `totalAbonado` e historial de abonos) y `totalRecaudado`. |
@@ -116,7 +116,7 @@ crean después desde la aplicación (solo el tesorero puede).
 | POST | `/api/eventos/:id/participantes` | sesión | Body: `{ miembroId }`. 409 si ya participa o si el evento está inactivo. |
 | DELETE | `/api/eventos/:id/participantes/:participanteId` | sesión | Quita al participante y elimina sus abonos (cascada). 409 si el evento está inactivo. |
 | POST | `/api/abonos` | sesión | Body: `{ participanteId, monto, fechaPago, observaciones? }`. 409 si el evento está inactivo. Devuelve el abono con los datos del comprobante. |
-| PUT | `/api/abonos/:id` | tesorero | Body: `{ monto?, fechaPago?, observaciones? }`. |
+| PUT | `/api/abonos/:id` | sesión | Body: `{ monto?, fechaPago?, observaciones? }`. |
 | GET | `/api/configuracion` | sesión | Fila única: `{ nombreClub }`. Ambos roles la leen (la barra superior muestra el nombre del club). |
 | PUT | `/api/configuracion` | tesorero | Body: `{ nombreClub }`. |
 | POST | `/api/miembros/inactivar-todos` | tesorero | Cambio masivo: TODOS los miembros pasan a INACTIVO. No toca pagos ni historiales. Devuelve la cantidad afectada. |
@@ -186,8 +186,14 @@ Errores: siempre `{ "error": "mensaje" }` con el código HTTP correspondiente
   JSON; el frontend lo formatea con `Intl` (es-AR, ARS) y nunca opera
   aritméticamente con él.
 - **No hay eliminación de pagos.** La especificación solo define
-  "modificar" (tesorero). Si hiciera falta borrar un pago, se decidirá
-  como cambio de alcance.
+  "modificar". Si hiciera falta borrar un pago, se decidirá como cambio
+  de alcance.
+- **Modificar pagos y abonos: cualquier usuario** (ampliación decidida
+  con el usuario; la especificación lo limitaba al tesorero). Aplica a
+  los dos endpoints `PUT` y a los botones "Editar": en el historial de
+  pagos del detalle del miembro (edición en línea de mes/año/monto/fecha/
+  observaciones) y en el historial de abonos del evento. Las validaciones
+  no cambian: monto > 0, período único, evento inactivo solo consulta.
 - **Prevención de duplicados en dos capas**: verificación previa con
   mensaje detallado (miembro + períodos exactos) y, si dos usuarios
   registran a la vez, el UNIQUE de la base corta la transacción entera.

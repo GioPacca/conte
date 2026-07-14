@@ -347,7 +347,6 @@ function DetalleEvento({
                   key={p.id}
                   participante={p}
                   activo={activo}
-                  esTesorero={esTesorero}
                   abierto={participanteAbierto === p.id}
                   alAlternar={() =>
                     setParticipanteAbierto(participanteAbierto === p.id ? null : p.id)
@@ -422,7 +421,6 @@ function DetalleEvento({
 function ParticipanteFila({
   participante: p,
   activo,
-  esTesorero,
   abierto,
   alAlternar,
   alAbonar,
@@ -431,7 +429,6 @@ function ParticipanteFila({
 }: {
   participante: Participante;
   activo: boolean;
-  esTesorero: boolean;
   abierto: boolean;
   alAlternar: () => void;
   alAbonar: () => void;
@@ -481,7 +478,7 @@ function ParticipanteFila({
             ) : (
               <ul className="space-y-1 text-xs text-gray-600">
                 {p.abonos.map((a) => (
-                  <AbonoLinea key={a.id} abono={a} esTesorero={esTesorero} alRecargar={alRecargar} />
+                  <AbonoLinea key={a.id} abono={a} alRecargar={alRecargar} />
                 ))}
               </ul>
             )}
@@ -492,14 +489,12 @@ function ParticipanteFila({
   );
 }
 
-// Línea de abono en el historial individual; el tesorero puede editarla.
+// Línea de abono en el historial individual; cualquier usuario puede editarla.
 function AbonoLinea({
   abono: a,
-  esTesorero,
   alRecargar,
 }: {
   abono: AbonoDeParticipante;
-  esTesorero: boolean;
   alRecargar: () => void;
 }) {
   const [editando, setEditando] = useState(false);
@@ -543,11 +538,9 @@ function AbonoLinea({
         {a.registradoPor && ` — registrado por ${a.registradoPor.nombre} ${a.registradoPor.apellido}`}
         {a.observaciones && ` — ${a.observaciones}`}
       </span>
-      {esTesorero && (
-        <button type="button" onClick={() => setEditando(true)} className="text-emerald-700 underline">
-          Editar
-        </button>
-      )}
+      <button type="button" onClick={() => setEditando(true)} className="text-emerald-700 underline">
+        Editar
+      </button>
     </li>
   );
 }

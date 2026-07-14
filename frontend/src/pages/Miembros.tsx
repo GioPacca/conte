@@ -10,7 +10,9 @@ import {
   type MiembroDetalle,
   type DatosMiembro,
   type FiltrosMiembros,
+  type PagoDeMiembro,
 } from '../api/miembros';
+import { editarPago } from '../api/pagos';
 import { listarResponsables, type ResponsableEnLista } from '../api/responsables';
 import type { Usuario } from '../api/auth';
 import {
@@ -178,22 +180,13 @@ export function Miembros({
                   <th className="py-2 pr-4 font-medium">Monto</th>
                   <th className="py-2 pr-4 font-medium">Fecha de pago</th>
                   <th className="py-2 pr-4 font-medium">Registrado por</th>
-                  <th className="py-2 font-medium">Observaciones</th>
+                  <th className="py-2 pr-4 font-medium">Observaciones</th>
+                  <th className="py-2 font-medium">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {detalle.pagos.map((p) => (
-                  <tr key={p.id} className="border-b border-gray-100">
-                    <td className="py-2 pr-4">{nombreMes(p.mes)} {p.anio}</td>
-                    <td className="py-2 pr-4">{formatearMonto(p.monto)}</td>
-                    <td className="py-2 pr-4">{formatearFecha(p.fechaPago)}</td>
-                    <td className="py-2 pr-4">
-                      {p.registradoPor
-                        ? `${p.registradoPor.nombre} ${p.registradoPor.apellido}`
-                        : '—'}
-                    </td>
-                    <td className="py-2">{p.observaciones ?? '—'}</td>
-                  </tr>
+                  <PagoFila key={p.id} pago={p} alRecargar={() => abrirDetalle(detalle.id)} />
                 ))}
               </tbody>
             </table>
@@ -517,5 +510,85 @@ function FormularioMiembro({
         </div>
       </form>
     </div>
+  );
+}
+
+// Fila de pago del historial, con edición en línea (cualquier usuario).
+// Modificables: mes, año, monto, fecha y observaciones. Si el nuevo
+// período ya tiene pago, el backend responde 409 y se muestra el error.
+function PagoFila({ pago: p, alRecargar }: { pago: PagoDeMiembro; alRecargar: () => void }) {
+  const [editando, setEditando] = useState(false);
+  const [mes, setMes] = useState(p.mes);
+  const [anio, setAnio] = useState(p.anio);
+  const [monto, setMonto] = useState(p.monto);
+  const [fecha, setFecha] = useState(p.fechaPago.slice(0, 10));
+  const [obs, setObs] = useState(p.observaciones ?? '');
+  const [error, setError] = useState<string | null>(null);
+
+  async function guardar() {
+    setError(null);
+    try {
+      await editarPago(p.id, {
+        mes,
+        anio,
+        monto: Number(monto),
+        fechaPago: fecha,
+        observaciones: obs || undefined,
+      });
+      setEditando(false);
+      alRecargar();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo guardar');
+    }
+  }
+
+  const estiloCampo = 'rounded border border-gray-300 px-2 py-0.5 text-sm';
+
+  if (editando) {
+    return (
+      <tr className="border-b border-gray-100 bg-gray-50">
+        <td colSpan={6} className="px-2 py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={mes} onChange={(e) => setMes(Number(e.target.value))} className={estiloCampo}>
+              {MESES.map((nombre, i) => (
+                <option key={i + 1} value={i + 1}>{nombre}</option>
+              ))}
+            </select>
+            <input type="number" value={anio} onChange={(e) => setAnio(Number(e.target.value))} min={2000} max={2100} className={estiloCampo + ' w-20'} />
+            <input type="number" value={monto} onChange={(e) => setMonto(e.target.value)} min="0.01" step="0.01" className={estiloCampo + ' w-28'} />
+            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={estiloCampo} />
+            <input type="text" value={obs} onChange={(e) => setObs(e.target.value)} placeholder="Observaciones" className={estiloCampo + ' w-40'} />
+            <button type="button" onClick={guardar} className="rounded bg-emerald-700 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-800">
+              Guardar
+            </button>
+            <button type="button" onClick={() => setEditando(false)} className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-100">
+              Cancelar
+            </button>
+            {error && <span className="text-xs text-red-600">{error}</span>}
+          </div>
+        </td>
+      </tr>
+    );
+  }
+
+  return (
+    <tr className="border-b border-gray-100">
+      <td className="py-2 pr-4">{nombreMes(p.mes)} {p.anio}</td>
+      <td className="py-2 pr-4">{formatearMonto(p.monto)}</td>
+      <td className="py-2 pr-4">{formatearFecha(p.fechaPago)}</td>
+      <td className="py-2 pr-4">
+        {p.registradoPor ? `${p.registradoPor.nombre} ${p.registradoPor.apellido}` : '—'}
+      </td>
+      <td className="py-2 pr-4">{p.observaciones ?? '—'}</td>
+      <td className="py-2">
+        <button
+          type="button"
+          onClick={() => setEditando(true)}
+          className="rounded border border-emerald-700 px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50"
+        >
+          Editar
+        </button>
+      </td>
+    </tr>
   );
 }
