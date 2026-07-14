@@ -12,8 +12,15 @@ export async function obtenerPanel(_req: Request, res: Response) {
   const mesActual = ahora.getMonth() + 1;
   const anioActual = ahora.getFullYear();
 
-  const [totalMiembros, miembrosActivos, porRol, recaudacion, ultimosPagos, ultimosAbonos] =
-    await Promise.all([
+  const [
+    totalMiembros,
+    miembrosActivos,
+    porRol,
+    recaudacion,
+    ultimosPagos,
+    ultimosAbonos,
+    eventosActivos,
+  ] = await Promise.all([
       prisma.miembro.count(),
       prisma.miembro.count({ where: { estado: 'ACTIVO' } }),
       prisma.miembro.groupBy({ by: ['rolMiembro'], _count: { _all: true } }),
@@ -38,6 +45,12 @@ export async function obtenerPanel(_req: Request, res: Response) {
         },
         orderBy: { fechaPago: 'desc' },
         take: CANTIDAD_MOVIMIENTOS,
+      }),
+      // Eventos activos para la tarjeta del panel
+      prisma.evento.findMany({
+        where: { estado: 'ACTIVO' },
+        include: { _count: { select: { participantes: true } } },
+        orderBy: { fecha: 'asc' },
       }),
     ]);
 
@@ -80,5 +93,11 @@ export async function obtenerPanel(_req: Request, res: Response) {
       total: (recaudacion._sum.monto ?? 0).toString(),
     },
     movimientos,
+    eventosActivos: eventosActivos.map(({ _count, ...e }) => ({
+      id: e.id,
+      nombre: e.nombre,
+      fecha: e.fecha,
+      cantidadParticipantes: _count.participantes,
+    })),
   });
 }

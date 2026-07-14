@@ -12,6 +12,7 @@ import { rutasEventos } from './routes/eventos.routes';
 import { rutasAbonos } from './routes/abonos.routes';
 import { rutasConfiguracion } from './routes/configuracion.routes';
 import { rutasPanel } from './routes/panel.routes';
+import { rutasCotizacion } from './routes/cotizacion.routes';
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('Falta SESSION_SECRET en el archivo .env');
@@ -64,6 +65,7 @@ app.use('/api/eventos', rutasEventos);
 app.use('/api/abonos', rutasAbonos);
 app.use('/api/configuracion', rutasConfiguracion);
 app.use('/api/panel', rutasPanel);
+app.use('/api/cotizacion', rutasCotizacion);
 
 // Manejador de errores: cualquier excepción no controlada responde 500
 // sin filtrar detalles internos (se loguean solo en el servidor).

@@ -119,6 +119,7 @@ crean después desde la aplicación (solo el tesorero puede).
 | GET | `/api/configuracion` | sesión | Fila única: `{ nombreClub, anioActual }`. Ambos roles la leen (valores por defecto de formularios). |
 | PUT | `/api/configuracion` | tesorero | Body: `{ nombreClub?, anioActual? }`. |
 | POST | `/api/miembros/inactivar-todos` | tesorero | Cambio masivo: TODOS los miembros pasan a INACTIVO. No toca pagos ni historiales. Devuelve la cantidad afectada. |
+| GET | `/api/cotizacion` | sesión | Dólar blue y oficial (compra/venta) desde dolarapi.com, con caché de 10 minutos. 502 si el servicio externo no responde. |
 | GET | `/api/panel` | sesión | Resumen del panel principal: `totalMiembros`, `miembrosActivos`, `cantidadPorRol`, `recaudacionMesActual` (mes calendario) y `movimientos` (últimos 10, pagos y abonos unificados por fecha). |
 
 El detalle de miembro (`GET /api/miembros/:id`) ahora incluye `pagos`
@@ -211,6 +212,14 @@ Errores: siempre `{ "error": "mensaje" }` con el código HTTP correspondiente
 - **El dibujo de comprobantes está centralizado** en
   `frontend/src/lib/comprobanteImagen.ts`; los comprobantes de cuota y de
   abono comparten esa utilidad.
+- **Cotización del dólar en el panel** (pedido posterior a la
+  especificación): el navegador no puede leer sitios externos directamente
+  (CORS), así que el backend consulta **dolarapi.com** (servicio JSON; se
+  eligió sobre leer el HTML de dolarhoy.com por robustez, decidido con el
+  usuario) y cachea el resultado 10 minutos en memoria. Si el servicio
+  falla, la tarjeta muestra "no disponible" y el resto del panel funciona
+  igual. El panel también lista los eventos ACTIVOS con su cantidad de
+  participantes.
 
 ## Despliegue (Vercel + Render)
 

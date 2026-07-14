@@ -70,7 +70,12 @@ export default function App() {
       alNavegar={navegar}
       alSalir={manejarSalir}
     >
-      {pantalla === 'inicio' && <Inicio alRegistrarPago={() => navegar('pagos')} />}
+      {pantalla === 'inicio' && (
+        <Inicio
+          alRegistrarPago={() => navegar('pagos')}
+          alVerEventos={() => navegar('eventos')}
+        />
+      )}
       {pantalla === 'miembros' && (
         <Miembros
           usuario={usuario}

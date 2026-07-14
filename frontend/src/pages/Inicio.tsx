@@ -1,19 +1,34 @@
 import { useEffect, useState } from 'react';
 import { obtenerPanel, type Panel } from '../api/panel';
+import { obtenerCotizacion, type Cotizacion } from '../api/cotizacion';
 import { nombreMes, formatearMonto, formatearFecha } from '../lib/formato';
 
 // Panel principal (pantalla 2): totales de miembros, cantidad por rol,
-// recaudación del mes actual por cuota de actividad, últimos movimientos
-// unificados (pagos de cuota + abonos de evento, decisión 7) y acceso
-// rápido a registrar pago.
-export function Inicio({ alRegistrarPago }: { alRegistrarPago: () => void }) {
+// recaudación del mes actual por cuota de actividad, cotización del dólar
+// (dolarhoy.com), eventos activos y últimos movimientos unificados
+// (pagos de cuota + abonos de evento, decisión 7) con el acceso rápido
+// a registrar pago.
+export function Inicio({
+  alRegistrarPago,
+  alVerEventos,
+}: {
+  alRegistrarPago: () => void;
+  alVerEventos: () => void;
+}) {
   const [panel, setPanel] = useState<Panel | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // undefined = cargando; null = no disponible
+  const [cotizacion, setCotizacion] = useState<Cotizacion | null | undefined>(undefined);
 
   useEffect(() => {
     obtenerPanel()
       .then(setPanel)
       .catch((e) => setError(e instanceof Error ? e.message : 'No se pudo cargar el panel'));
+    // La cotización es informativa: si falla, la tarjeta lo dice y el
+    // resto del panel funciona igual
+    obtenerCotizacion()
+      .then(setCotizacion)
+      .catch(() => setCotizacion(null));
   }, []);
 
   if (error) {
@@ -32,6 +47,9 @@ export function Inicio({ alRegistrarPago }: { alRegistrarPago: () => void }) {
     },
   ];
 
+  // El dólar es cotización de referencia: sin decimales
+  const pesos = (valor: number) => `$ ${valor.toLocaleString('es-AR')}`;
+
   return (
     <div className="space-y-6">
       {/* Tarjetas de totales */}
@@ -44,7 +62,7 @@ export function Inicio({ alRegistrarPago }: { alRegistrarPago: () => void }) {
         ))}
       </div>
 
-      {/* Cantidad por rol + acceso rápido */}
+      {/* Cantidad por rol + cotización del dólar */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-lg bg-white p-5 shadow">
           <p className="text-sm font-medium text-gray-700">Miembros por rol</p>
@@ -63,20 +81,80 @@ export function Inicio({ alRegistrarPago }: { alRegistrarPago: () => void }) {
             </div>
           </dl>
         </div>
-        <div className="flex items-center justify-center rounded-lg bg-white p-5 shadow">
+
+        <div className="rounded-lg bg-white p-5 shadow">
+          <p className="text-sm font-medium text-gray-700">Cotización del dólar</p>
+          {cotizacion === undefined ? (
+            <p className="mt-3 text-sm text-gray-500">Cargando…</p>
+          ) : cotizacion === null ? (
+            <p className="mt-3 text-sm text-gray-500">No disponible en este momento.</p>
+          ) : (
+            <>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-center">
+                <div>
+                  <dt className="text-xs text-gray-500">Blue</dt>
+                  <dd className="text-lg font-bold text-gray-800">{pesos(cotizacion.blue.venta)}</dd>
+                  <dd className="text-xs text-gray-500">
+                    compra {pesos(cotizacion.blue.compra)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-gray-500">Oficial</dt>
+                  <dd className="text-lg font-bold text-gray-800">{pesos(cotizacion.oficial.venta)}</dd>
+                  <dd className="text-xs text-gray-500">
+                    compra {pesos(cotizacion.oficial.compra)}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-2 text-right text-xs text-gray-400">Fuente: {cotizacion.fuente}</p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Eventos activos */}
+      <div className="rounded-lg bg-white p-6 shadow">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-800">
+            Eventos activos ({panel.eventosActivos.length})
+          </h2>
+          <button
+            type="button"
+            onClick={alVerEventos}
+            className="ml-auto text-sm text-emerald-700 hover:underline"
+          >
+            Ver todos los eventos →
+          </button>
+        </div>
+        {panel.eventosActivos.length === 0 ? (
+          <p className="mt-2 text-sm text-gray-500">No hay eventos activos.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-gray-100 text-sm">
+            {panel.eventosActivos.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center gap-2 py-2">
+                <span className="font-medium text-gray-800">{e.nombre}</span>
+                <span className="text-gray-500">— {formatearFecha(e.fecha)}</span>
+                <span className="ml-auto text-gray-500">
+                  {e.cantidadParticipantes} participante{e.cantidadParticipantes === 1 ? '' : 's'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Últimos movimientos unificados, con el acceso rápido a registrar pago */}
+      <div className="rounded-lg bg-white p-6 shadow">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-800">Últimos movimientos</h2>
           <button
             type="button"
             onClick={alRegistrarPago}
-            className="rounded bg-emerald-700 px-6 py-3 font-medium text-white hover:bg-emerald-800"
+            className="ml-auto rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
           >
             Registrar pago
           </button>
         </div>
-      </div>
-
-      {/* Últimos movimientos unificados */}
-      <div className="rounded-lg bg-white p-6 shadow">
-        <h2 className="text-lg font-semibold text-gray-800">Últimos movimientos</h2>
         {panel.movimientos.length === 0 ? (
           <p className="mt-2 text-sm text-gray-500">Todavía no hay movimientos registrados.</p>
         ) : (

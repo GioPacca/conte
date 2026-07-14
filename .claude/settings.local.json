@@ -28,7 +28,20 @@
       "Bash(sed -i \"1i import 'dotenv/config';\" _tmp-crear-prueba.ts)",
       "Bash(npm run *)",
       "Bash(gh --version)",
-      "Bash(git --version)"
+      "Bash(git --version)",
+      "Bash(cd /tmp/conte-check && echo \"=== Archivos en backend \\(sin node_modules\\) ===\" && find backend -type f -not -path \"*/node_modules/*\" -not -path \"*/.git/*\" | sort && echo -e \"\\\\n=== ¿Está el .env subido? ===\" && if [ -f backend/.env ]; then echo \"⚠️  SÍ ESTÁ SUBIDO \\(PROBLEMA\\)\"; else echo \"✅ NO está subido \\(correcto\\)\"; fi && echo -e \"\\\\n=== Verificar CLAUDE.md y README ===\" && head -3 CLAUDE.md && echo \"...\" && head -3 README.md && echo \"...\")",
+      "Bash(find . -maxdepth 2 -type d -not -path \"*/\\\\.*\" -not -path \"*/node_modules\")",
+      "Bash(curl -s -m 90 -w \"\\\\nHTTP %{http_code}\\\\n\" https://conte-gxbw.onrender.com/api/health)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Apuntar el rewrite de Vercel al backend en Render *)",
+      "Bash(git push *)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -m 60 https://conte-ecru.vercel.app)",
+      "Bash(curl -s -m 90 -w \"\\\\nHTTP %{http_code}\\\\n\" https://conte-ecru.vercel.app/api/health)",
+      "Bash(curl -s -m 60 -o /dev/null -w \"HTTP %{http_code}\\\\n\" https://conte-ecru.vercel.app/api/miembros)",
+      "Bash(curl -s -m 60 -w \"\\\\nHTTP %{http_code}\\\\n\" -X POST https://conte-ecru.vercel.app/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"noexiste@x.com\",\"password\":\"incorrecta\"}')",
+      "Bash(git commit -m 'Cerrar Etapa 9: README con el despliegue real en Vercel + Render *)",
+      "Bash(curl -s -m 30 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\)\" https://dolarhoy.com/ -o \"C:/Users/Giovanni/AppData/Local/Temp/claude/C--Users-Giovanni-Desktop-conte/69bed4f9-4397-4ad1-bd0c-e6fa4a669378/scratchpad/dolarhoy.html\" -w \"HTTP %{http_code}, %{size_download} bytes\\\\n\")",
+      "Bash(grep -o 'class=\"tile is-child[^>]*>.\\\\{0,400\\\\}' dolarhoy.html)"
     ]
   }
 }
