@@ -214,6 +214,9 @@ Errores: siempre `{ "error": "mensaje" }` con el código HTTP correspondiente
 
 ## Despliegue (Vercel + Render)
 
+**Sistema en producción**: https://conte-ecru.vercel.app
+(backend: https://conte-gxbw.onrender.com, solo API).
+
 El frontend se despliega en **Vercel** y el backend en **Render**; la base
 ya vive en Supabase. El navegador solo habla con Vercel: el archivo
 `frontend/vercel.json` reenvía (`rewrite`) todas las llamadas `/api/*` al
@@ -224,11 +227,12 @@ primera parte.
 
 1. Crear un **Web Service** apuntando al repositorio, con directorio raíz
    `backend/`.
-2. Build command: `npm install && npx prisma generate && npm run build`
-3. Pre-deploy command: `npx prisma migrate deploy`
-   (aplica las migraciones pendientes en cada despliegue).
-4. Start command: `npm start`
-5. Variables de entorno:
+2. Build command:
+   `npm install && npx prisma generate && npx prisma migrate deploy && npm run build`
+   (las migraciones van dentro del build porque el plan gratuito de Render
+   no permite pre-deploy commands).
+3. Start command: `npm start`
+4. Variables de entorno:
    - `DATABASE_URL` → pooler de transacción de Supabase (puerto 6543).
    - `DIRECT_URL` → pooler de sesión (puerto 5432, para las migraciones).
    - `SESSION_SECRET` → un secreto aleatorio NUEVO (no reutilizar el local).
@@ -247,8 +251,10 @@ primera parte.
 
 ### 3. Primer uso en producción
 
-Correr el seed del tesorero contra la base de producción una única vez
-(desde una máquina con el `.env` de producción): `npm run crear-tesorero`.
+Si la base de producción está vacía, correr el seed del tesorero una única
+vez (desde una máquina con el `.env` de producción): `npm run crear-tesorero`.
+En este despliegue no hizo falta: producción usa la misma base de Supabase
+que el desarrollo, con el tesorero ya creado.
 
 Nota del plan gratuito de Render: el servicio se duerme tras ~15 minutos
 sin uso y la primera petición posterior tarda ~30-60 segundos. Las
@@ -281,8 +287,9 @@ sesiones NO se pierden (viven en PostgreSQL).
 - ✅ **Etapa 8 — Panel principal**: totales de miembros, cantidad por rol,
   recaudación del mes actual, últimos movimientos unificados y acceso
   rápido a registrar pago.
-- ✅ **Etapa 9 — Validaciones finales, pruebas y preparación de
-  despliegue**: sesiones en PostgreSQL (sobreviven reinicios), cookie
-  secure + trust proxy para producción, rewrite de Vercel (sin CORS),
-  builds de producción verificados y guía de despliegue. El despliegue
-  en sí queda a cargo del tesorero siguiendo la sección "Despliegue".
+- ✅ **Etapa 9 — Validaciones finales, pruebas y despliegue**: sesiones
+  en PostgreSQL (sobreviven reinicios), cookie secure + trust proxy para
+  producción, rewrite de Vercel (sin CORS), builds de producción
+  verificados y **sistema desplegado y verificado en
+  https://conte-ecru.vercel.app** (frontend en Vercel, backend en Render,
+  base en Supabase).
