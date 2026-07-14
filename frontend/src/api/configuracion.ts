@@ -4,17 +4,13 @@ import { llamarApi } from './http';
 export type Configuracion = {
   id: number;
   nombreClub: string;
-  anioActual: number;
 };
 
 export function obtenerConfiguracion(): Promise<Configuracion> {
   return llamarApi('/api/configuracion');
 }
 
-export function editarConfiguracion(datos: {
-  nombreClub?: string;
-  anioActual?: number;
-}): Promise<Configuracion> {
+export function editarConfiguracion(datos: { nombreClub: string }): Promise<Configuracion> {
   return llamarApi('/api/configuracion', { method: 'PUT', body: JSON.stringify(datos) });
 }
 

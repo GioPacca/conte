@@ -117,8 +117,8 @@ crean después desde la aplicación (solo el tesorero puede).
 | DELETE | `/api/eventos/:id/participantes/:participanteId` | sesión | Quita al participante y elimina sus abonos (cascada). 409 si el evento está inactivo. |
 | POST | `/api/abonos` | sesión | Body: `{ participanteId, monto, fechaPago, observaciones? }`. 409 si el evento está inactivo. Devuelve el abono con los datos del comprobante. |
 | PUT | `/api/abonos/:id` | tesorero | Body: `{ monto?, fechaPago?, observaciones? }`. |
-| GET | `/api/configuracion` | sesión | Fila única: `{ nombreClub, anioActual }`. Ambos roles la leen (valores por defecto de formularios). |
-| PUT | `/api/configuracion` | tesorero | Body: `{ nombreClub?, anioActual? }`. |
+| GET | `/api/configuracion` | sesión | Fila única: `{ nombreClub }`. Ambos roles la leen (la barra superior muestra el nombre del club). |
+| PUT | `/api/configuracion` | tesorero | Body: `{ nombreClub }`. |
 | POST | `/api/miembros/inactivar-todos` | tesorero | Cambio masivo: TODOS los miembros pasan a INACTIVO. No toca pagos ni historiales. Devuelve la cantidad afectada. |
 | GET | `/api/cotizacion` | sesión | Dólar blue y oficial (compra/venta) desde dolarapi.com, con caché de 10 minutos. 502 si el servicio externo no responde. |
 | GET | `/api/panel` | sesión | Resumen del panel principal: `totalMiembros`, `miembrosActivos`, `cantidadPorRol`, `recaudacionMesActual` (mes calendario) y `movimientos` (últimos 10, pagos y abonos unificados por fecha). |
@@ -191,11 +191,13 @@ Errores: siempre `{ "error": "mensaje" }` con el código HTTP correspondiente
 - **Prevención de duplicados en dos capas**: verificación previa con
   mensaje detallado (miembro + períodos exactos) y, si dos usuarios
   registran a la vez, el UNIQUE de la base corta la transacción entera.
-- **Año por defecto en formularios**: sale de `anio_actual` de la
-  configuración (cerrado en la Etapa 7). Ambos roles pueden LEER la
-  configuración (los formularios la necesitan); solo el tesorero la
-  modifica. El nombre del club de la configuración se muestra en la
-  barra superior.
+- **El año por defecto en formularios y filtros es el del sistema.**
+  La especificación definía `anio_actual` en la configuración (decisión 9),
+  pero se eliminó después (decidido con el usuario): no restringía nada y
+  el año calendario cumple el mismo rol sin mantenimiento manual. La
+  migración `quitar_anio_actual` borra la columna. Ambos roles pueden LEER
+  la configuración (la barra superior muestra el nombre del club); solo el
+  tesorero la modifica.
 - **La pestaña Configuración solo es visible para el tesorero** (y el
   backend rechaza igualmente cualquier modificación de un ayudante).
 - **El tesorero puede CREAR y ELIMINAR otros tesoreros** (ampliación
@@ -209,10 +211,9 @@ Errores: siempre `{ "error": "mensaje" }` con el código HTTP correspondiente
   superior): nombre, apellido, teléfono, email y contraseña. Cambiar la
   contraseña exige ingresar la actual (protege una sesión abierta ajena).
   El rol y el estado quedan fuera: son del tesorero.
-- **"Mes actual" del panel = mes calendario del sistema**, no
-  `anio_actual` de la configuración (ese solo aplica a valores por
-  defecto de formularios). Los "últimos movimientos" son los 10 más
-  recientes por fecha de pago (no se registra hora de carga).
+- **"Mes actual" del panel = mes calendario del sistema.** Los "últimos
+  movimientos" son los 10 más recientes por fecha de pago (no se registra
+  hora de carga).
 - **Sin eliminación de abonos** (igual que los pagos): la especificación
   solo define "modificar". Los abonos desaparecen por cascada al quitar
   al participante o eliminar el evento.
@@ -300,9 +301,10 @@ sesiones NO se pierden (viven en PostgreSQL).
   (solo tesorero), participantes y abonos con reglas de evento
   activo/inactivo, totales por participante y por evento, segundo flujo
   de la pantalla Pagos y comprobante de abono descargable.
-- ✅ **Etapa 7 — Configuración**: nombre del club y año actual (solo
-  tesorero), pantalla de gestión de ayudantes, cambio masivo a inactivo,
-  y el año por defecto de formularios/filtros ahora sale de `anio_actual`.
+- ✅ **Etapa 7 — Configuración**: nombre del club (solo tesorero),
+  pantalla de gestión de usuarios y cambio masivo a inactivo. (El año
+  actual configurable se eliminó después, a pedido del usuario: los
+  formularios usan el año del sistema.)
 - ✅ **Etapa 8 — Panel principal**: totales de miembros, cantidad por rol,
   recaudación del mes actual, últimos movimientos unificados y acceso
   rápido a registrar pago.

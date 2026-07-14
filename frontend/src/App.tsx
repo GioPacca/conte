@@ -61,8 +61,6 @@ export default function App() {
     return <Login alIngresar={setUsuario} />;
   }
 
-  const anioPorDefecto = config?.anioActual ?? new Date().getFullYear();
-
   return (
     <Layout
       usuario={usuario}
@@ -78,16 +76,10 @@ export default function App() {
         />
       )}
       {pantalla === 'miembros' && (
-        <Miembros
-          usuario={usuario}
-          alRegistrarPago={irARegistrarPago}
-          anioPorDefecto={anioPorDefecto}
-        />
+        <Miembros usuario={usuario} alRegistrarPago={irARegistrarPago} />
       )}
       {pantalla === 'responsables' && <Responsables usuario={usuario} />}
-      {pantalla === 'pagos' && (
-        <Pagos miembroPreseleccionado={miembroParaPago} anioPorDefecto={anioPorDefecto} />
-      )}
+      {pantalla === 'pagos' && <Pagos miembroPreseleccionado={miembroParaPago} />}
       {pantalla === 'eventos' && <Eventos usuario={usuario} />}
       {pantalla === 'configuracion' && usuario.rol === 'TESORERO' && (
         <Configuracion usuario={usuario} alCambiarConfig={setConfig} />

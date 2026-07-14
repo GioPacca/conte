@@ -39,17 +39,13 @@ export function Configuracion({
 
 function SeccionDatosClub({ alCambiarConfig }: { alCambiarConfig: (c: Config) => void }) {
   const [nombreClub, setNombreClub] = useState('');
-  const [anioActual, setAnioActual] = useState<number>(new Date().getFullYear());
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     obtenerConfiguracion()
-      .then((c) => {
-        setNombreClub(c.nombreClub);
-        setAnioActual(c.anioActual);
-      })
+      .then((c) => setNombreClub(c.nombreClub))
       .catch(() => setError('No se pudo cargar la configuración'));
   }, []);
 
@@ -59,7 +55,7 @@ function SeccionDatosClub({ alCambiarConfig }: { alCambiarConfig: (c: Config) =>
     setAviso(null);
     setEnviando(true);
     try {
-      const config = await editarConfiguracion({ nombreClub, anioActual });
+      const config = await editarConfiguracion({ nombreClub });
       alCambiarConfig(config);
       setAviso('Configuración guardada.');
     } catch (err) {
@@ -79,22 +75,6 @@ function SeccionDatosClub({ alCambiarConfig }: { alCambiarConfig: (c: Config) =>
         <label className="block text-sm font-medium text-gray-700">
           Nombre del club *
           <input value={nombreClub} onChange={(e) => setNombreClub(e.target.value)} required className={estiloCampo} />
-        </label>
-        <label className="block text-sm font-medium text-gray-700">
-          Año actual *
-          <input
-            type="number"
-            value={anioActual}
-            onChange={(e) => setAnioActual(Number(e.target.value))}
-            min={2000}
-            max={2100}
-            required
-            className={estiloCampo}
-          />
-          <span className="mt-1 block text-xs font-normal text-gray-500">
-            Solo es el valor por defecto en formularios y filtros; no restringe nada
-            y no se actualiza automáticamente.
-          </span>
         </label>
 
         {aviso && <p className="rounded bg-emerald-50 px-3 py-2 text-sm text-emerald-800 sm:col-span-2">{aviso}</p>}

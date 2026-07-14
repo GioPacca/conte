@@ -1,7 +1,6 @@
 // Configuración del sistema: tabla de una sola fila (id = 1).
-// Leer: ambos roles (los formularios usan anio_actual como valor por
-// defecto). Modificar: solo tesorero.
-// anio_actual NO restringe nada ni se actualiza solo (decisión 9).
+// Leer: ambos roles (la barra superior muestra el nombre del club).
+// Modificar: solo tesorero.
 
 import type { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
@@ -17,28 +16,18 @@ export async function obtenerConfiguracion(_req: Request, res: Response) {
   res.json(config);
 }
 
-// PUT /api/configuracion — solo tesorero. Body: { nombreClub?, anioActual? }
+// PUT /api/configuracion — solo tesorero. Body: { nombreClub }
 export async function editarConfiguracion(req: Request, res: Response) {
-  const { nombreClub, anioActual } = req.body ?? {};
+  const { nombreClub } = req.body ?? {};
 
-  if (nombreClub !== undefined && (typeof nombreClub !== 'string' || !nombreClub.trim())) {
+  if (typeof nombreClub !== 'string' || !nombreClub.trim()) {
     res.status(400).json({ error: 'El nombre del club no puede quedar vacío' });
-    return;
-  }
-  if (
-    anioActual !== undefined &&
-    (!Number.isInteger(anioActual) || anioActual < 2000 || anioActual > 2100)
-  ) {
-    res.status(400).json({ error: 'Año inválido' });
     return;
   }
 
   const config = await prisma.configuracion.update({
     where: { id: 1 },
-    data: {
-      nombreClub: nombreClub === undefined ? undefined : nombreClub.trim(),
-      anioActual: anioActual ?? undefined,
-    },
+    data: { nombreClub: nombreClub.trim() },
   });
   res.json(config);
 }

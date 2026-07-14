@@ -207,10 +207,11 @@ model AbonoEvento {
 // CONFIGURACIÓN — tabla de una sola fila (id siempre = 1)
 // ============================================================
 
+// anio_actual se eliminó (decidido con el usuario): los formularios usan
+// el año calendario del sistema como valor por defecto.
 model Configuracion {
   id         Int    @id @default(1)
   nombreClub String @map("nombre_club")
-  anioActual Int    @map("anio_actual") // solo valor por defecto en formularios (decisión 9)
 
   @@map("configuracion")
 }

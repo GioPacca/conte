@@ -15,14 +15,7 @@ import { MESES, hoyISO, formatearMonto } from '../lib/formato';
 
 // Pantalla de pagos con los dos flujos de la especificación (pantalla 6):
 // registrar pago de cuota de actividad y registrar abono de evento.
-// `anioPorDefecto` sale de la configuración (anio_actual, decisión 9).
-export function Pagos({
-  miembroPreseleccionado,
-  anioPorDefecto,
-}: {
-  miembroPreseleccionado: string | null;
-  anioPorDefecto: number;
-}) {
+export function Pagos({ miembroPreseleccionado }: { miembroPreseleccionado: string | null }) {
   const [flujo, setFlujo] = useState<'cuota' | 'abono'>('cuota');
 
   const estiloPestania = (activa: boolean) =>
@@ -40,10 +33,7 @@ export function Pagos({
         </button>
       </div>
       {flujo === 'cuota' ? (
-        <FlujoCuota
-          miembroPreseleccionado={miembroPreseleccionado}
-          anioPorDefecto={anioPorDefecto}
-        />
+        <FlujoCuota miembroPreseleccionado={miembroPreseleccionado} />
       ) : (
         <FlujoAbono />
       )}
@@ -54,18 +44,12 @@ export function Pagos({
 // ---------- Flujo 1: pago de cuota de actividad ----------
 // Multi-mes: cada mes seleccionado genera UN registro con el mismo monto
 // (todo o nada). Tras registrar se muestran los comprobantes, uno por mes.
-function FlujoCuota({
-  miembroPreseleccionado,
-  anioPorDefecto,
-}: {
-  miembroPreseleccionado: string | null;
-  anioPorDefecto: number;
-}) {
+function FlujoCuota({ miembroPreseleccionado }: { miembroPreseleccionado: string | null }) {
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [miembroId, setMiembroId] = useState(miembroPreseleccionado ?? '');
   const [mesesSeleccionados, setMesesSeleccionados] = useState<number[]>([]);
-  // El año por defecto sale de la configuración (anio_actual)
-  const [anio, setAnio] = useState(anioPorDefecto);
+  // El año por defecto es el del sistema
+  const [anio, setAnio] = useState(new Date().getFullYear());
   const [monto, setMonto] = useState('');
   const [fechaPago, setFechaPago] = useState(hoyISO());
   const [observaciones, setObservaciones] = useState('');

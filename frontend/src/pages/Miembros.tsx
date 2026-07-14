@@ -30,11 +30,9 @@ import { MESES, nombreMes, formatearMonto, formatearFecha } from '../lib/formato
 export function Miembros({
   usuario,
   alRegistrarPago,
-  anioPorDefecto,
 }: {
   usuario: Usuario;
   alRegistrarPago: (miembroId: string) => void;
-  anioPorDefecto: number;
 }) {
   const [lista, setLista] = useState<Miembro[]>([]);
   const [busqueda, setBusqueda] = useState('');
@@ -42,9 +40,9 @@ export function Miembros({
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroRol, setFiltroRol] = useState('');
   // Consulta "sin registro de pago": mes vacío = consulta desactivada.
-  // El año por defecto sale de la configuración (anio_actual).
+  // El año por defecto es el del sistema.
   const [mesSinPago, setMesSinPago] = useState('');
-  const [anioSinPago, setAnioSinPago] = useState(anioPorDefecto);
+  const [anioSinPago, setAnioSinPago] = useState(new Date().getFullYear());
   const [detalle, setDetalle] = useState<MiembroDetalle | null>(null);
   const [editando, setEditando] = useState<MiembroDetalle | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
