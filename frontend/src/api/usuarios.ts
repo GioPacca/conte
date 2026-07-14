@@ -19,6 +19,7 @@ export type DatosAyudante = {
   email: string;
   password?: string; // obligatoria al crear; opcional al editar
   estado?: string;
+  rol?: string; // solo al crear: AYUDANTE (por defecto) o TESORERO
 };
 
 export function listarUsuarios(): Promise<UsuarioGestionado[]> {

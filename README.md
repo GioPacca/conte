@@ -86,9 +86,9 @@ crean después desde la aplicación (solo el tesorero puede).
 | POST | `/api/auth/logout` | público | Cierra la sesión y borra la cookie. |
 | GET | `/api/auth/yo` | sesión | Usuario de la sesión actual: `{ id, nombre, apellido, email, rol }`. |
 | GET | `/api/usuarios` | tesorero | Lista todos los usuarios (sin hash), ordenados por apellido. |
-| POST | `/api/usuarios` | tesorero | Body: `{ nombre, apellido, telefono?, email, password }`. Crea un AYUDANTE. 409 si el email ya existe. |
+| POST | `/api/usuarios` | tesorero | Body: `{ nombre, apellido, telefono?, email, password, rol? }` — rol `AYUDANTE` (por defecto) o `TESORERO`. 409 si el email ya existe. |
 | PUT | `/api/usuarios/:id` | tesorero | Body: campos a cambiar (`password` y `estado` incluidos). Solo ayudantes: 403 si el destino es tesorero. |
-| DELETE | `/api/usuarios/:id` | tesorero | Elimina un ayudante. Sus pagos/abonos registrados quedan con `registradoPor` en nulo. |
+| DELETE | `/api/usuarios/:id` | tesorero | Elimina un ayudante o tesorero (nunca a uno mismo: 409). Sus pagos/abonos registrados quedan con `registradoPor` en nulo. |
 
 | GET | `/api/responsables?busqueda=` | sesión | Lista responsables con `cantidadMiembros`. La búsqueda cubre nombre, apellido y DNI (insensible a mayúsculas). |
 | GET | `/api/responsables/:id` | sesión | Detalle con la lista de `miembros` asociados. |
@@ -197,8 +197,12 @@ Errores: siempre `{ "error": "mensaje" }` con el código HTTP correspondiente
   barra superior.
 - **La pestaña Configuración solo es visible para el tesorero** (y el
   backend rechaza igualmente cualquier modificación de un ayudante).
-  La gestión de tesoreros no existe en la UI: el CRUD solo administra
-  ayudantes, como define la especificación.
+- **El tesorero puede CREAR y ELIMINAR otros tesoreros** (ampliación
+  posterior a la especificación, decidida con el usuario): el selector de
+  rol aparece solo al crear, con una advertencia sobre el poder total del
+  rol. Nadie puede eliminarse a sí mismo — como quien ejecuta es un
+  tesorero activo, siempre queda al menos uno. EDITAR tesoreros sigue
+  bloqueado.
 - **"Mes actual" del panel = mes calendario del sistema**, no
   `anio_actual` de la configuración (ese solo aplica a valores por
   defecto de formularios). Los "últimos movimientos" son los 10 más

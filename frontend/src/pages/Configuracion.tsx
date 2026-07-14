@@ -14,15 +14,22 @@ import {
   type DatosAyudante,
 } from '../api/usuarios';
 import { traducirEstado } from '../lib/traducciones';
+import type { Usuario } from '../api/auth';
 
 // Pantalla de configuración (solo tesorero — pantalla 9 de la especificación):
-// datos del club, gestión de ayudantes y cambio masivo a inactivo.
+// datos del club, gestión de usuarios y cambio masivo a inactivo.
 // `alCambiarConfig` avisa a App para refrescar el nombre del club y el año.
-export function Configuracion({ alCambiarConfig }: { alCambiarConfig: (c: Config) => void }) {
+export function Configuracion({
+  usuario,
+  alCambiarConfig,
+}: {
+  usuario: Usuario;
+  alCambiarConfig: (c: Config) => void;
+}) {
   return (
     <div className="space-y-6">
       <SeccionDatosClub alCambiarConfig={alCambiarConfig} />
-      <SeccionAyudantes />
+      <SeccionAyudantes usuarioActual={usuario} />
       <SeccionCambioMasivo />
     </div>
   );
@@ -109,7 +116,7 @@ function SeccionDatosClub({ alCambiarConfig }: { alCambiarConfig: (c: Config) =>
 
 // ---------- Sección 2: gestión de ayudantes ----------
 
-function SeccionAyudantes() {
+function SeccionAyudantes({ usuarioActual }: { usuarioActual: Usuario }) {
   const [usuarios, setUsuarios] = useState<UsuarioGestionado[]>([]);
   const [editando, setEditando] = useState<UsuarioGestionado | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -129,8 +136,10 @@ function SeccionAyudantes() {
   }, []);
 
   async function manejarEliminar(u: UsuarioGestionado) {
+    const advertenciaTesorero =
+      u.rol === 'TESORERO' ? ' ATENCIÓN: es un TESORERO y dejará de tener acceso total.' : '';
     const seguro = window.confirm(
-      `Se eliminará el usuario ${u.nombre} ${u.apellido}. Los pagos y abonos que registró conservan el registro, sin referencia al usuario. ¿Continuar?`
+      `Se eliminará el usuario ${u.nombre} ${u.apellido}.${advertenciaTesorero} Los pagos y abonos que registró conservan el registro, sin referencia al usuario. ¿Continuar?`
     );
     if (!seguro) return;
     setError(null);
@@ -152,13 +161,13 @@ function SeccionAyudantes() {
   return (
     <div className="rounded-lg bg-white p-6 shadow">
       <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold text-gray-800">Gestión de ayudantes</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Gestión de usuarios</h2>
         <button
           type="button"
           onClick={() => { setAviso(null); setMostrarFormulario(true); }}
           className="ml-auto rounded bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
         >
-          Nuevo ayudante
+          Nuevo usuario
         </button>
       </div>
 
@@ -194,8 +203,9 @@ function SeccionAyudantes() {
                   </span>
                 </td>
                 <td className="py-2">
-                  {u.rol === 'AYUDANTE' && (
-                    <span className="flex gap-2">
+                  <span className="flex gap-2">
+                    {/* Editar: solo ayudantes. Eliminar: cualquiera menos uno mismo. */}
+                    {u.rol === 'AYUDANTE' && (
                       <button
                         type="button"
                         onClick={() => { setAviso(null); setEditando(u); }}
@@ -203,6 +213,8 @@ function SeccionAyudantes() {
                       >
                         Editar
                       </button>
+                    )}
+                    {u.id !== usuarioActual.id && (
                       <button
                         type="button"
                         onClick={() => manejarEliminar(u)}
@@ -210,8 +222,8 @@ function SeccionAyudantes() {
                       >
                         Eliminar
                       </button>
-                    </span>
-                  )}
+                    )}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -237,6 +249,7 @@ function FormularioAyudante({
     email: inicial?.email ?? '',
     password: '',
     estado: inicial?.estado ?? 'ACTIVO',
+    rol: 'AYUDANTE',
   });
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -270,7 +283,7 @@ function FormularioAyudante({
   return (
     <form onSubmit={manejarEnvio} className="mt-4 grid grid-cols-1 gap-4 rounded border border-gray-200 bg-gray-50 p-4 sm:grid-cols-2">
       <h3 className="text-sm font-semibold text-gray-700 sm:col-span-2">
-        {inicial ? `Editar ayudante: ${inicial.nombre} ${inicial.apellido}` : 'Nuevo ayudante'}
+        {inicial ? `Editar ayudante: ${inicial.nombre} ${inicial.apellido}` : 'Nuevo usuario'}
       </h3>
       <label className="block text-sm font-medium text-gray-700">
         Nombre *
@@ -306,6 +319,24 @@ function FormularioAyudante({
           <option value="INACTIVO">Inactivo (no puede iniciar sesión)</option>
         </select>
       </label>
+
+      {/* El rol solo se elige al crear: los tesoreros no se editan desde la UI */}
+      {!inicial && (
+        <label className="block text-sm font-medium text-gray-700">
+          Rol
+          <select value={datos.rol} onChange={(e) => cambiar('rol', e.target.value)} className={estiloCampo}>
+            <option value="AYUDANTE">Ayudante</option>
+            <option value="TESORERO">Tesorero</option>
+          </select>
+          {datos.rol === 'TESORERO' && (
+            <span className="mt-1 block text-xs font-normal text-amber-700">
+              Un tesorero tiene poder total: modifica pagos, elimina eventos y
+              crea otros usuarios. Además, no se puede editar ni eliminar desde
+              esta pantalla.
+            </span>
+          )}
+        </label>
+      )}
 
       {error && <p className="rounded bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2">{error}</p>}
 

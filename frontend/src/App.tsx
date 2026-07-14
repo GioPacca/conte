@@ -89,7 +89,7 @@ export default function App() {
       )}
       {pantalla === 'eventos' && <Eventos usuario={usuario} />}
       {pantalla === 'configuracion' && usuario.rol === 'TESORERO' && (
-        <Configuracion alCambiarConfig={setConfig} />
+        <Configuracion usuario={usuario} alCambiarConfig={setConfig} />
       )}
     </Layout>
   );
