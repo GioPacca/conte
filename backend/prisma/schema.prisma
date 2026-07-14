@@ -1,0 +1,216 @@
+// ============================================================
+// CONTE — Sistema de gestión de tesorería
+// Club de Conquistadores
+//
+// Este archivo es la FUENTE DE VERDAD de la base de datos.
+// Los cambios se aplican con: npx prisma migrate dev
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Prisma 7: la URL de conexión ya no va acá — vive en prisma.config.ts
+// y se lee de la variable de entorno DATABASE_URL (archivo .env)
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS — valores cerrados que la base de datos hace cumplir
+// ============================================================
+
+// Estado compartido por usuarios, miembros y eventos (decisión 2:
+// los eventos tienen solo dos estados, activo e inactivo)
+enum Estado {
+  ACTIVO
+  INACTIVO
+}
+
+enum RolUsuario {
+  TESORERO
+  AYUDANTE
+}
+
+enum RolMiembro {
+  CONQUISTADOR
+  LIDER
+  DIRECTIVO
+}
+
+// Nota: los enums no admiten tildes ni ñ.
+// El frontend traduce a "Compañero", "Líder", "Guía" al mostrar.
+enum Unidad {
+  AMIGO
+  COMPANERO
+  EXPLORADOR
+  PIONERO
+  EXCURSIONISTA
+  GUIA
+}
+
+// ============================================================
+// USUARIO — equipo de tesorería (autenticación propia)
+// ============================================================
+
+model Usuario {
+  id           String     @id @default(uuid())
+  nombre       String
+  apellido     String
+  telefono     String?
+  email        String     @unique
+  passwordHash String     @map("password_hash") // hash bcrypt, nunca la contraseña real
+  rol          RolUsuario
+  estado       Estado     @default(ACTIVO) // un usuario INACTIVO no puede iniciar sesión
+
+  // Relaciones inversas: qué registró este usuario
+  pagosRegistrados  PagoCuotaActividad[]
+  abonosRegistrados AbonoEvento[]
+
+  @@map("usuarios")
+}
+
+// ============================================================
+// RESPONSABLE — adulto a cargo de uno o varios miembros
+// ============================================================
+
+model Responsable {
+  id            String  @id @default(uuid())
+  nombre        String
+  apellido      String
+  dni           String  @unique // decisión 10: DNI obligatorio y único
+  telefono      String?
+  tipoRelacion  String? @map("tipo_relacion") // madre, padre, tutor... texto libre
+  observaciones String?
+
+  miembros Miembro[]
+
+  @@map("responsables")
+}
+
+// ============================================================
+// MIEMBRO — integrante del club
+// ============================================================
+
+model Miembro {
+  id            String     @id @default(uuid())
+  nombre        String
+  apellido      String
+  dni           String     @unique // decisión 10: DNI obligatorio y único
+  telefono      String?
+  unidad        Unidad? // opcional según sección 7.1
+  rolMiembro    RolMiembro @map("rol_miembro")
+  estado        Estado     @default(ACTIVO)
+  observaciones String?
+
+  // Un miembro puede tener cero o un responsable.
+  // onDelete SetNull (decisión 11): si se elimina el responsable,
+  // sus miembros quedan "sin responsable" automáticamente.
+  responsableId String?      @map("responsable_id")
+  responsable   Responsable? @relation(fields: [responsableId], references: [id], onDelete: SetNull)
+
+  pagos           PagoCuotaActividad[]
+  participaciones EventoParticipante[]
+
+  @@map("miembros")
+}
+
+// ============================================================
+// PAGO DE CUOTA DE ACTIVIDAD
+// ============================================================
+
+model PagoCuotaActividad {
+  id            String   @id @default(uuid())
+  mes           Int // 1 a 12 — el backend valida el rango (Prisma no soporta CHECK)
+  anio          Int
+  monto         Decimal  @db.Decimal(12, 2) // Decimal exacto: nunca Float para dinero
+  fechaPago     DateTime @map("fecha_pago") @db.Date
+  observaciones String?
+
+  // onDelete Cascade (decisión 1b): eliminar un miembro borra sus pagos
+  miembroId String  @map("miembro_id")
+  miembro   Miembro @relation(fields: [miembroId], references: [id], onDelete: Cascade)
+
+  // onDelete SetNull (decisión 6): eliminar un usuario deja la referencia vacía
+  registradoPorId String?  @map("registrado_por_id")
+  registradoPor   Usuario? @relation(fields: [registradoPorId], references: [id], onDelete: SetNull)
+
+  // REGLA 9.5 — la más importante del sistema:
+  // un miembro no puede tener dos pagos para el mismo mes y año.
+  // PostgreSQL la hace cumplir físicamente.
+  @@unique([miembroId, mes, anio])
+  @@map("pagos_cuota_actividad")
+}
+
+// ============================================================
+// EVENTO — actividad especial con costo (camporí, campamento...)
+// ============================================================
+
+model Evento {
+  id          String   @id @default(uuid())
+  nombre      String
+  descripcion String?
+  fecha       DateTime @db.Date
+  estado      Estado   @default(ACTIVO) // INACTIVO = solo consulta, no admite abonos
+
+  participantes EventoParticipante[]
+
+  @@map("eventos")
+}
+
+// ============================================================
+// EVENTO PARTICIPANTE — relación miembro ↔ evento
+// ============================================================
+
+model EventoParticipante {
+  id              String   @id @default(uuid())
+  fechaAsignacion DateTime @default(now()) @map("fecha_asignacion") @db.Date
+
+  // onDelete Cascade (decisión 2): eliminar un evento borra sus participantes
+  eventoId String @map("evento_id")
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  // onDelete Cascade (decisión 1b): eliminar un miembro borra sus participaciones
+  miembroId String  @map("miembro_id")
+  miembro   Miembro @relation(fields: [miembroId], references: [id], onDelete: Cascade)
+
+  abonos AbonoEvento[]
+
+  // REGLA 11.5: un miembro no puede repetirse en el mismo evento
+  @@unique([eventoId, miembroId])
+  @@map("evento_participantes")
+}
+
+// ============================================================
+// ABONO DE EVENTO
+// Apunta al PARTICIPANTE (no al miembro directo): así es
+// estructuralmente imposible abonar sin participar, y quitar
+// un participante elimina sus abonos (decisión 3, vía Cascade).
+// ============================================================
+
+model AbonoEvento {
+  id            String   @id @default(uuid())
+  monto         Decimal  @db.Decimal(12, 2)
+  fechaPago     DateTime @map("fecha_pago") @db.Date
+  observaciones String?
+
+  participanteId String             @map("participante_id")
+  participante   EventoParticipante @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+
+  registradoPorId String?  @map("registrado_por_id")
+  registradoPor   Usuario? @relation(fields: [registradoPorId], references: [id], onDelete: SetNull)
+
+  @@map("abonos_evento")
+}
+
+// ============================================================
+// CONFIGURACIÓN — tabla de una sola fila (id siempre = 1)
+// ============================================================
+
+model Configuracion {
+  id         Int    @id @default(1)
+  nombreClub String @map("nombre_club")
+  anioActual Int    @map("anio_actual") // solo valor por defecto en formularios (decisión 9)
+
+  @@map("configuracion")
+}
