@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:ruta*",
-      "destination": "https://CAMBIAR-POR-TU-BACKEND.onrender.com/api/:ruta*"
+      "destination": "https://conte-gxbw.onrender.com/api/:ruta*"
     }
   ]
 }
