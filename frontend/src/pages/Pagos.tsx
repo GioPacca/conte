@@ -48,12 +48,14 @@ function FlujoCuota({ miembroPreseleccionado }: { miembroPreseleccionado: string
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [miembroId, setMiembroId] = useState(miembroPreseleccionado ?? '');
   const [mesesSeleccionados, setMesesSeleccionados] = useState<number[]>([]);
-  // El año por defecto es el del sistema
+
   const [anio, setAnio] = useState(new Date().getFullYear());
   const [monto, setMonto] = useState('');
+
   const [fechaPago, setFechaPago] = useState(hoyISO());
   const [observaciones, setObservaciones] = useState('');
   const [comprobantes, setComprobantes] = useState<Pago[] | null>(null);
+  
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 

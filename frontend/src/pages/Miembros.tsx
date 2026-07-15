@@ -372,7 +372,7 @@ export function Miembros({
   );
 }
 
-// Formulario de alta/edición. Si `inicial` viene con datos, es edición.
+// Formulario de alta/edición. Si "inicial" viene con datos, es edición.
 function FormularioMiembro({
   inicial,
   alCerrar,
