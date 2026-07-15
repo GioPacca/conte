@@ -110,7 +110,7 @@ export async function registrarPago(req: Request, res: Response) {
     return;
   }
 
-  // El miembro puede estar INACTIVO: se permite registrar pagos igual (decisión 8)
+  // El miembro puede estar INACTIVO: se permite registrar pagos igual
   const miembro = await prisma.miembro.findUnique({ where: { id: miembroId } });
   if (!miembro) {
     res.status(400).json({ error: 'El miembro indicado no existe' });

@@ -33,8 +33,19 @@ if (enProduccion) {
 // Las sesiones se guardan en la misma base PostgreSQL (tabla "session",
 // creada automáticamente): sobreviven a los reinicios del servidor.
 // Es una tabla de infraestructura, fuera del schema de Prisma.
+//
+// Usa DIRECT_URL (pooler en modo sesión) y NO DATABASE_URL (pooler en
+// modo transacción, pgbouncer): el store necesita una conexión estable
+// de larga duración para sus consultas periódicas de limpieza; el pooler
+// de transacción recicla conexiones por transacción y las corta bajo uso
+// prolongado, lo que rompía el login con "Error interno del servidor"
+// tras el servidor estar un rato inactivo.
 const AlmacenPg = connectPgSimple(session);
-const poolSesiones = new Pool({ connectionString: process.env.DATABASE_URL });
+const poolSesiones = new Pool({ connectionString: process.env.DIRECT_URL });
+// Evita que un error de conexión en segundo plano tumbe el proceso entero.
+poolSesiones.on('error', (err) => {
+  console.error('Error en el pool de sesiones:', err.message);
+});
 
 app.use(
   session({
