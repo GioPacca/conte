@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 
-const UNIDADES = ['AMIGO', 'COMPANERO', 'EXPLORADOR', 'PIONERO', 'EXCURSIONISTA', 'GUIA'];
+const UNIDADES = ['AMIGO', 'COMPANERO', 'EXPLORADOR', 'PIONERO', 'EXCURSIONISTA', 'GUIA', 'CONQUIMAS'];
 const ROLES_MIEMBRO = ['CONQUISTADOR', 'LIDER', 'DIRECTIVO'];
 const ESTADOS = ['ACTIVO', 'INACTIVO'];
 
@@ -74,7 +74,7 @@ export async function listarMiembros(req: Request, res: Response) {
 
 // GET /api/miembros/sin-pago?mes=&anio=&busqueda=&unidad=&estado=&rol=
 // Miembros SIN registro de pago de cuota de actividad en el período dado.
-// Terminología: nunca "deben" — son "sin registro de pago" (sección 5).
+// Terminología: nunca "deben" - son "sin registro de pago" (sección 5).
 // Sin interpretación de ingresos tardíos: la lectura queda a criterio
 // del equipo de tesorería.
 export async function listarMiembrosSinPago(req: Request, res: Response) {

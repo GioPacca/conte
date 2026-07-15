@@ -2,7 +2,14 @@
 // Los enums no admiten tildes ni ñ (sección 6 de la especificación):
 // acá se convierten a su forma correcta en español.
 
-export type Unidad = 'AMIGO' | 'COMPANERO' | 'EXPLORADOR' | 'PIONERO' | 'EXCURSIONISTA' | 'GUIA';
+export type Unidad =
+  | 'AMIGO'
+  | 'COMPANERO'
+  | 'EXPLORADOR'
+  | 'PIONERO'
+  | 'EXCURSIONISTA'
+  | 'GUIA'
+  | 'CONQUIMAS';
 export type RolMiembro = 'CONQUISTADOR' | 'LIDER' | 'DIRECTIVO';
 export type Estado = 'ACTIVO' | 'INACTIVO';
 
@@ -13,6 +20,7 @@ export const UNIDADES: Record<Unidad, string> = {
   PIONERO: 'Pionero',
   EXCURSIONISTA: 'Excursionista',
   GUIA: 'Guía',
+  CONQUIMAS: 'ConquiMas',
 };
 
 export const ROLES_MIEMBRO: Record<RolMiembro, string> = {

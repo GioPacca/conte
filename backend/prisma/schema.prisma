@@ -47,6 +47,7 @@ enum Unidad {
   PIONERO
   EXCURSIONISTA
   GUIA
+  CONQUIMAS
 }
 
 // ============================================================
