@@ -6,7 +6,7 @@ import {
   editarResponsable,
   eliminarResponsable,
 } from '../controllers/responsables.controller';
-import { requiereSesion, requiereTesorero } from '../middleware/autenticacion';
+import { requiereSesion } from '../middleware/autenticacion';
 
 export const rutasResponsables = Router();
 
@@ -16,5 +16,6 @@ rutasResponsables.get('/', listarResponsables);
 rutasResponsables.get('/:id', obtenerResponsable);
 rutasResponsables.post('/', crearResponsable);
 rutasResponsables.put('/:id', editarResponsable);
-// Eliminar es exclusivo del tesorero (sección 3 de la especificación)
-rutasResponsables.delete('/:id', requiereTesorero, eliminarResponsable);
+// Eliminar: cualquier usuario (ampliación decidida con el usuario; la
+// especificación lo limitaba al tesorero).
+rutasResponsables.delete('/:id', eliminarResponsable);

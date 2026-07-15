@@ -1,5 +1,4 @@
-// Panel principal (pantalla 2): resume el estado del sistema en una
-// sola llamada. Accesible para ambos roles.
+// Panel principal 
 
 import type { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
@@ -7,11 +6,13 @@ import { prisma } from '../lib/prisma';
 const CANTIDAD_MOVIMIENTOS = 10;
 
 // GET /api/panel
+// Devuelve los datos para la pantalla principal
 export async function obtenerPanel(_req: Request, res: Response) {
   const ahora = new Date();
   const mesActual = ahora.getMonth() + 1;
   const anioActual = ahora.getFullYear();
-
+// Se hacen varias consultas en paralelo para optimizar la velocidad de respuesta
+// Se hace un groupBy para obtener la cantidad de miembros por rol, y se hace un aggregate para obtener la recaudación del mes actual por cuota de actividad. También se obtienen los últimos pagos y abonos, y los eventos activos.
   const [
     totalMiembros,
     miembrosActivos,
@@ -29,6 +30,7 @@ export async function obtenerPanel(_req: Request, res: Response) {
         where: { mes: mesActual, anio: anioActual },
         _sum: { monto: true },
       }),
+      // Últimos movimientos: pagos de cuota y abonos de evento
       prisma.pagoCuotaActividad.findMany({
         include: { miembro: { select: { nombre: true, apellido: true } } },
         orderBy: { fechaPago: 'desc' },

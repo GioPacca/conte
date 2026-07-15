@@ -6,7 +6,8 @@ import { Prisma } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { prisma } from '../lib/prisma';
 
-// POST /api/auth/login — body: { email, password }
+// POST /api/auth/login - body: { email, password } 
+// Acá se encarga de que se hallan completado los campos y que el usuario exista y esté activo.
 export async function iniciarSesion(req: Request, res: Response) {
   const { email, password } = req.body ?? {};
   if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
@@ -34,6 +35,7 @@ export async function iniciarSesion(req: Request, res: Response) {
       res.status(500).json({ error: 'No se pudo iniciar la sesión' });
       return;
     }
+    // Esto es lo que hace que la sesión "recuerde" al usuario.
     req.session.usuarioId = usuario.id;
     res.json({
       id: usuario.id,
@@ -47,6 +49,7 @@ export async function iniciarSesion(req: Request, res: Response) {
 }
 
 // POST /api/auth/logout
+// Cierra la sesión actual y borra la cookie de sesión.
 export function cerrarSesion(req: Request, res: Response) {
   req.session.destroy((err) => {
     if (err) {
@@ -63,11 +66,7 @@ export function usuarioActual(req: Request, res: Response) {
   res.json(req.usuario);
 }
 
-// PUT /api/auth/perfil — cada usuario edita SU propia información
-// (ampliación decidida con el usuario). Editables: nombre, apellido,
-// teléfono, email y contraseña. El rol y el estado NO: siguen siendo
-// del tesorero. Para cambiar la contraseña hay que ingresar la actual.
-// Body: { nombre?, apellido?, telefono?, email?, passwordActual?, passwordNueva? }
+// PUT /api/auth/perfil - cada usuario edita su propia información
 export async function editarPerfil(req: Request, res: Response) {
   const { nombre, apellido, telefono, email, passwordActual, passwordNueva } = req.body ?? {};
 

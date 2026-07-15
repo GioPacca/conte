@@ -41,21 +41,22 @@ app.use(
     store: new AlmacenPg({ pool: poolSesiones, createTableIfMissing: true }),
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: false, // no crear sesión hasta que alguien se loguee
-    cookie: {
-      httpOnly: true, // la cookie no es accesible desde JavaScript del navegador
-      sameSite: 'lax', // el frontend llega vía rewrite de Vercel: misma origen
-      secure: enProduccion, // solo por HTTPS en producción
-      maxAge: 8 * 60 * 60 * 1000, // 8 horas: una jornada de trabajo
+    saveUninitialized: false,
+    cookie: { //configuración de la cookie de sesión, como es accesible, por donde llega y cuanto dura
+      httpOnly: true, 
+      sameSite: 'lax', 
+      secure: enProduccion,
+      maxAge: 8 * 60 * 60 * 1000, 
     },
   })
 );
 
-// Endpoint de salud: confirma que el server funciona.
+// Interesante --> endpoint de salud: confirma que el server funciona.
 app.get('/api/health', (_req, res) => {
   res.json({ estado: 'ok' });
 });
 
+// Rutas de la API: todas empiezan con /api/ y se delegan a los routers correspondientes.
 app.use('/api/auth', rutasAuth);
 app.use('/api/usuarios', rutasUsuarios);
 app.use('/api/responsables', rutasResponsables);
@@ -68,12 +69,12 @@ app.use('/api/panel', rutasPanel);
 app.use('/api/cotizacion', rutasCotizacion);
 
 // Manejador de errores: cualquier excepción no controlada responde 500
-// sin filtrar detalles internos (se loguean solo en el servidor).
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
+// Puerto de escucha: en desarrollo es 3000, en producción lo da Render.
 const PORT = process.env.PORT ?? 3000;
 app.listen(PORT, () => {
   console.log(`CONTE backend escuchando en http://localhost:${PORT}`);

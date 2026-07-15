@@ -78,7 +78,7 @@ export default function App() {
       {pantalla === 'miembros' && (
         <Miembros usuario={usuario} alRegistrarPago={irARegistrarPago} />
       )}
-      {pantalla === 'responsables' && <Responsables usuario={usuario} />}
+      {pantalla === 'responsables' && <Responsables />}
       {pantalla === 'pagos' && <Pagos miembroPreseleccionado={miembroParaPago} />}
       {pantalla === 'eventos' && <Eventos usuario={usuario} />}
       {pantalla === 'configuracion' && usuario.rol === 'TESORERO' && (

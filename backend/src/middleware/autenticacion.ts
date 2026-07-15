@@ -1,7 +1,7 @@
 // Middleware de autenticación y permisos.
 // La sesión guarda SOLO el id del usuario; el resto se lee de la base en
 // cada request. Así, si un usuario pasa a INACTIVO (o se elimina), sus
-// sesiones existentes dejan de valer de inmediato (regla de la sección 3).
+// sesiones existentes dejan de valer de inmediato.
 
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';

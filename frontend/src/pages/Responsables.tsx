@@ -9,11 +9,10 @@ import {
   type ResponsableDetalle,
   type DatosResponsable,
 } from '../api/responsables';
-import type { Usuario } from '../api/auth';
 
 // Pantalla de responsables: tabla con búsqueda, alta, detalle con
-// miembros asociados, edición y eliminación (solo tesorero).
-export function Responsables({ usuario }: { usuario: Usuario }) {
+// miembros asociados, edición y eliminación (cualquier usuario).
+export function Responsables() {
   // vista: lista | formulario (alta o edición) | detalle
   const [lista, setLista] = useState<ResponsableEnLista[]>([]);
   const [busqueda, setBusqueda] = useState('');
@@ -22,8 +21,6 @@ export function Responsables({ usuario }: { usuario: Usuario }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
-
-  const esTesorero = usuario.rol === 'TESORERO';
 
   async function cargarLista(texto: string) {
     try {
@@ -138,15 +135,13 @@ export function Responsables({ usuario }: { usuario: Usuario }) {
           >
             Editar
           </button>
-          {esTesorero && (
-            <button
-              type="button"
-              onClick={() => manejarEliminar(detalle.id)}
-              className="rounded border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-            >
-              Eliminar
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => manejarEliminar(detalle.id)}
+            className="rounded border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+          >
+            Eliminar
+          </button>
         </div>
       </div>
     );

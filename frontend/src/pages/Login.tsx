@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { iniciarSesion, type Usuario } from '../api/auth';
 
 // Pantalla de login: email + contraseña.
+// Al iniciar sesión correctamente, llama a alIngresar(usuario) para que el App.tsx
+// actualice el estado de usuario y muestre la app principal.
 export function Login({ alIngresar }: { alIngresar: (usuario: Usuario) => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +32,7 @@ export function Login({ alIngresar }: { alIngresar: (usuario: Usuario) => void }
       >
         <h1 className="text-2xl font-bold text-emerald-700">CONTE</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Tesorería — Club de Conquistadores
+          Tesorería - Club de Conquistadores
         </p>
 
         <label className="mt-6 block text-sm font-medium text-gray-700">
@@ -44,7 +46,7 @@ export function Login({ alIngresar }: { alIngresar: (usuario: Usuario) => void }
             className="mt-1 w-full rounded border border-gray-300 px-3 py-2 focus:border-emerald-600 focus:outline-none"
           />
         </label>
-
+        
         <label className="mt-4 block text-sm font-medium text-gray-700">
           Contraseña
           <input
